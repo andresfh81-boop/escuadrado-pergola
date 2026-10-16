@@ -1,0 +1,688 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Escuadrado de Pérgola</title>
+<meta name="description" content="Comprueba en obra si la pérgola está a escuadra midiendo sus diagonales.">
+<meta name="theme-color" content="#2D6E9E">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" sizes="32x32" href="icon-32.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Condensed:wght@600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  [hidden]:not([hidden=until-found i]){display:none!important}
+  img{max-width:100%}
+  :root{
+    color-scheme:light;
+    --bg:#EEF3F7;
+    --grid-dot: rgba(45,110,158,0.16);
+    --paper:#FCFEFF;
+    --panel-line:#D3DEE8;
+    --ink:#132433;
+    --muted:#5C7891;
+    --muted-2:#8098AC;
+    --accent:#2D6E9E;
+    --accent-strong:#1E4F75;
+    --accent-soft:#DDEAF4;
+    --good:#1B8A5A;
+    --good-soft:#DDF2E6;
+    --warn:#B4650F;
+    --warn-soft:#FBEAD3;
+    --crop:#2D6E9E;
+    --shadow: 0 1px 2px rgba(19,36,51,0.06), 0 12px 28px -16px rgba(19,36,51,0.22);
+    --sans: "IBM Plex Sans", -apple-system, "Segoe UI", sans-serif;
+    --sans-cond: "IBM Plex Sans Condensed", "IBM Plex Sans", sans-serif;
+    --mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      color-scheme:dark;
+      --bg:#0D1A27;
+      --grid-dot: rgba(111,179,224,0.14);
+      --paper:#132638;
+      --panel-line:#25415A;
+      --ink:#E9F2F9;
+      --muted:#8FAEC7;
+      --muted-2:#6F8CA3;
+      --accent:#6FB3E0;
+      --accent-strong:#9BCBEA;
+      --accent-soft:#1D3A50;
+      --good:#6FD8A6;
+      --good-soft:#153A29;
+      --warn:#E7B45E;
+      --warn-soft:#3A2C10;
+      --crop:#6FB3E0;
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 20px 40px -20px rgba(0,0,0,0.55);
+    }
+  }
+  :root[data-theme="dark"]{
+    color-scheme:dark;
+    --bg:#0D1A27;
+    --grid-dot: rgba(111,179,224,0.14);
+    --paper:#132638;
+    --panel-line:#25415A;
+    --ink:#E9F2F9;
+    --muted:#8FAEC7;
+    --muted-2:#6F8CA3;
+    --accent:#6FB3E0;
+    --accent-strong:#9BCBEA;
+    --accent-soft:#1D3A50;
+    --good:#6FD8A6;
+    --good-soft:#153A29;
+    --warn:#E7B45E;
+    --warn-soft:#3A2C10;
+    --crop:#6FB3E0;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 20px 40px -20px rgba(0,0,0,0.55);
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(var(--grid-dot) 1px, transparent 1px) 0 0/22px 22px,
+      var(--bg);
+    color:var(--ink);
+    font-family:var(--sans);
+    font-size:14px;
+    display:flex;
+    justify-content:center;
+    padding:36px 16px 60px;
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{ transition-duration:0.01ms !important; }
+  }
+
+  .sheet{
+    position:relative;
+    width:100%;
+    max-width:600px;
+    background:var(--paper);
+    border:1px solid var(--panel-line);
+    border-radius:3px;
+    box-shadow:var(--shadow);
+    padding:34px 30px 30px;
+    display:flex;
+    flex-direction:column;
+    gap:22px;
+  }
+  .crop{ position:absolute; width:16px; height:16px; }
+  .crop::before,.crop::after{ content:""; position:absolute; background:var(--crop); }
+  .crop::before{ width:100%; height:1.5px; top:50%; left:0; transform:translateY(-50%);}
+  .crop::after{ width:1.5px; height:100%; left:50%; top:0; transform:translateX(-50%);}
+  .crop-tl{ top:-8px; left:-8px; }
+  .crop-tr{ top:-8px; right:-8px; }
+  .crop-bl{ bottom:-8px; left:-8px; }
+  .crop-br{ bottom:-8px; right:-8px; }
+
+  header{ border-bottom:1px solid var(--panel-line); padding-bottom:20px; }
+  .kicker{
+    font-family:var(--mono);
+    font-size:11.5px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--accent);
+    font-weight:500;
+  }
+  h1{
+    font-family:var(--sans-cond);
+    font-weight:700;
+    font-size:clamp(26px,5vw,32px);
+    line-height:1.1;
+    margin:8px 0 10px;
+    text-wrap:balance;
+    letter-spacing:-0.01em;
+  }
+  header p{
+    margin:0;
+    color:var(--muted);
+    font-size:14.5px;
+    line-height:1.55;
+    max-width:52ch;
+  }
+
+  .panel{ display:flex; flex-direction:column; }
+  .panel-title{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    margin:0 0 4px;
+    font-family:var(--sans-cond);
+    font-weight:600;
+    font-size:16.5px;
+  }
+  .panel-title .n{
+    font-family:var(--mono);
+    font-size:12px;
+    color:var(--muted-2);
+    letter-spacing:0.06em;
+  }
+  .panel-sub{ margin:0 0 16px; color:var(--muted); font-size:13px; line-height:1.5; max-width:56ch; }
+
+  .tabs{ display:flex; gap:4px; background:var(--accent-soft); padding:4px; border-radius:8px; margin-bottom:16px; width:fit-content; }
+  .tab{
+    appearance:none; border:none; cursor:pointer;
+    font-family:var(--sans); font-size:13px; font-weight:600;
+    padding:7px 14px; border-radius:6px;
+    background:transparent; color:var(--muted);
+  }
+  .tab.active{ background:var(--paper); color:var(--accent-strong); box-shadow:0 1px 2px rgba(19,36,51,0.12); }
+  .tab:focus-visible, button:focus-visible, input:focus-visible, .photo-preview:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+
+  .row{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .field{ display:flex; flex-direction:column; gap:6px; margin-bottom:14px; }
+  .field label{ font-size:12.5px; color:var(--muted); font-weight:500; }
+  .field label .unit{ color:var(--muted-2); font-weight:400; }
+  .field input[type="number"]{
+    font-family:var(--mono);
+    font-variant-numeric:tabular-nums;
+    font-size:17px;
+    padding:10px 12px;
+    border:1px solid var(--panel-line);
+    border-radius:6px;
+    background:var(--bg);
+    color:var(--ink);
+    width:100%;
+  }
+  .field input[type="number"]::placeholder{ color:var(--muted-2); opacity:0.7; }
+  input[type=number]::-webkit-outer-spin-button, input[type=number]::-webkit-inner-spin-button{ opacity:0.5; }
+
+  .photo-zone{
+    display:flex; align-items:center; justify-content:center; text-align:center;
+    border:1.5px dashed var(--panel-line); border-radius:8px;
+    padding:26px 16px; cursor:pointer; color:var(--muted); font-size:13.5px;
+    background:var(--bg); position:relative; min-height:96px;
+  }
+  .photo-zone.drag{ border-color:var(--accent); color:var(--accent-strong); background:var(--accent-soft); }
+  .photo-zone input{ position:absolute; inset:0; opacity:0; cursor:pointer; }
+
+  .photo-preview{
+    display:block; width:100%; cursor:zoom-in; background:transparent; border:none; padding:0;
+  }
+  .photo-preview img{
+    display:block; width:100%; max-height:280px; object-fit:contain;
+    border-radius:6px; border:1px solid var(--panel-line); background:#fff;
+  }
+  .photo-caption{ margin-top:8px; font-size:12px; color:var(--muted-2); }
+
+  .btn{
+    appearance:none; border:none; cursor:pointer; margin-top:12px;
+    font-family:var(--sans); font-weight:600; font-size:14px;
+    padding:10px 16px; border-radius:6px;
+    background:var(--accent); color:#F5FAFD;
+  }
+  .btn.secondary{ background:var(--accent-soft); color:var(--accent-strong); }
+  .btn:disabled{ background:var(--panel-line); color:var(--muted-2); cursor:not-allowed; }
+  .status-line{ margin-top:10px; font-size:12.5px; color:var(--muted); line-height:1.5; }
+  .status-line.warn{ color:var(--warn); }
+
+  .lightbox{
+    position:fixed; inset:0; background:rgba(8,14,20,0.9);
+    display:flex; align-items:center; justify-content:center;
+    z-index:1000; padding:24px; overflow:auto;
+  }
+  .lightbox[hidden]{ display:none; }
+  .lightbox img{
+    max-width:100%; max-height:100%; cursor:zoom-in;
+    box-shadow:0 20px 50px rgba(0,0,0,0.5); border-radius:2px;
+  }
+  .lightbox img.zoomed{ max-width:none; max-height:none; width:1600px; cursor:zoom-out; }
+  .lightbox-close{
+    position:fixed; top:16px; right:20px; z-index:1001;
+    width:40px; height:40px; border-radius:50%; border:none; cursor:pointer;
+    background:rgba(255,255,255,0.12); color:#fff; font-size:20px; line-height:1;
+  }
+  .lightbox-hint{
+    position:fixed; bottom:18px; left:50%; transform:translateX(-50%);
+    color:rgba(255,255,255,0.75); font-size:12.5px; z-index:1001;
+  }
+
+  .theoretical{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:12px 14px; background:var(--accent-soft); border-radius:6px;
+    font-size:13px; color:var(--muted);
+  }
+  .theoretical b{ font-family:var(--mono); font-size:16px; color:var(--ink); font-variant-numeric:tabular-nums; }
+
+  .diagram{ display:flex; justify-content:center; margin-bottom:14px; }
+  .diagram svg{ width:100%; max-width:320px; height:auto; }
+  .diagram line{ transition:stroke 0.25s ease; }
+  .diagram text{ font-family:var(--mono); }
+
+  .readout{
+    background:var(--accent-soft);
+    border:1px solid var(--panel-line);
+    border-radius:10px;
+    padding:22px 24px;
+    text-align:center;
+  }
+  .diff-label{
+    font-family:var(--mono); font-size:11px; letter-spacing:0.12em;
+    color:var(--muted); font-weight:500;
+  }
+  .diff-value{
+    font-family:var(--mono); font-weight:600; font-size:44px;
+    color:var(--ink); margin:6px 0 12px; font-variant-numeric:tabular-nums;
+    line-height:1;
+  }
+  .diff-value .u{ font-size:18px; color:var(--muted-2); font-weight:500; }
+  .pill{
+    display:inline-flex; align-items:center; gap:6px;
+    font-family:var(--mono); font-size:12px; font-weight:600; letter-spacing:0.06em;
+    padding:5px 12px; border-radius:100px; margin-bottom:14px;
+  }
+  .pill.good{ background:var(--good-soft); color:var(--good); }
+  .pill.warn{ background:var(--warn-soft); color:var(--warn); }
+  .pill .dot{ width:7px; height:7px; border-radius:50%; background:currentColor; }
+  .fix-text{ font-size:14px; line-height:1.55; color:var(--ink); max-width:46ch; margin:0 auto; }
+  .fix-text.muted{ color:var(--muted); }
+
+  @media (max-width:420px){
+    .row{ grid-template-columns:1fr; gap:0; }
+    .sheet{ padding:26px 18px 24px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="sheet">
+  <div class="crop crop-tl"></div><div class="crop crop-tr"></div>
+  <div class="crop crop-bl"></div><div class="crop crop-br"></div>
+
+  <header>
+    <div class="kicker">SAT · comprobación en obra</div>
+    <h1>Escuadrado de pérgola</h1>
+    <p>Mide las dos diagonales del hueco y comprueba al instante si la estructura queda a escuadra, con la corrección a aplicar.</p>
+  </header>
+
+  <div class="panel">
+    <p class="panel-title"><span>Medidas del hueco</span><span class="n">01</span></p>
+    <p class="panel-sub">Ancho y largo del hueco de la pérgola. Sirven solo como referencia para la diagonal teórica.</p>
+
+    <div class="tabs" role="tablist">
+      <button class="tab active" id="tabManual" role="tab" aria-selected="true">Manual</button>
+      <button class="tab" id="tabFoto" role="tab" aria-selected="false">Foto del plano</button>
+    </div>
+
+    <div id="panelManual">
+      <div class="row">
+        <div class="field">
+          <label for="ancho">Ancho <span class="unit">mm</span></label>
+          <input type="number" id="ancho" placeholder="4000" inputmode="numeric" min="0">
+        </div>
+        <div class="field">
+          <label for="alto">Largo <span class="unit">mm</span></label>
+          <input type="number" id="alto" placeholder="3000" inputmode="numeric" min="0">
+        </div>
+      </div>
+    </div>
+
+    <div id="panelFoto" style="display:none;">
+      <label class="photo-zone" id="photoZone">
+        <span id="photoZoneText">Arrastra el plano (imagen o PDF) aquí, o toca para subirlo o hacer una foto</span>
+        <input type="file" id="photoInput" accept="image/*,application/pdf" capture="environment">
+      </label>
+      <div class="status-line" id="photoStatus"></div>
+      <button class="btn secondary" id="btnContinuar" hidden>Pasar las cotas a Manual →</button>
+    </div>
+
+    <div class="theoretical" style="margin-top:12px;">
+      <span>Diagonal teórica</span>
+      <span><b id="diagTeorica">—</b> <span class="unit">mm</span></span>
+    </div>
+  </div>
+
+  <div class="panel">
+    <p class="panel-title"><span>Diagonales medidas</span><span class="n">02</span></p>
+    <p class="panel-sub">Numera las esquinas 1→2→3→4 en sentido horario empezando por donde quieras, y sé consistente al medir.</p>
+
+    <div class="diagram">
+      <svg viewBox="0 0 300 220" id="diagramSvg" aria-hidden="true">
+        <polygon id="rectShape" points="30,30 270,30 270,190 30,190" fill="none" stroke="var(--panel-line)" stroke-width="1.5"/>
+        <line id="lineAC" x1="30" y1="30" x2="270" y2="190" stroke="var(--accent)" stroke-width="2"/>
+        <line id="lineBD" x1="270" y1="30" x2="30" y2="190" stroke="var(--accent)" stroke-width="2"/>
+        <circle id="c1" cx="30" cy="30" r="4" fill="var(--paper)" stroke="var(--ink)" stroke-width="1"/>
+        <circle id="c2" cx="270" cy="30" r="4" fill="var(--paper)" stroke="var(--ink)" stroke-width="1"/>
+        <circle id="c3" cx="270" cy="190" r="4" fill="var(--paper)" stroke="var(--ink)" stroke-width="1"/>
+        <circle id="c4" cx="30" cy="190" r="4" fill="var(--paper)" stroke="var(--ink)" stroke-width="1"/>
+        <text id="t1" x="14" y="22" fill="var(--muted)" font-size="13">1</text>
+        <text id="t2" x="278" y="22" fill="var(--muted)" font-size="13">2</text>
+        <text id="t3" x="278" y="208" fill="var(--muted)" font-size="13">3</text>
+        <text id="t4" x="14" y="208" fill="var(--muted)" font-size="13">4</text>
+      </svg>
+    </div>
+
+    <div class="row">
+      <div class="field">
+        <label for="diag1">Diagonal 1→3 <span class="unit">mm</span></label>
+        <input type="number" id="diag1" placeholder="5000" inputmode="numeric" min="0">
+      </div>
+      <div class="field">
+        <label for="diag2">Diagonal 2→4 <span class="unit">mm</span></label>
+        <input type="number" id="diag2" placeholder="5000" inputmode="numeric" min="0">
+      </div>
+    </div>
+    <div class="field" style="margin-bottom:0;">
+      <label for="tolerancia">Tolerancia admitida <span class="unit">mm</span></label>
+      <input type="number" id="tolerancia" value="5" inputmode="numeric" min="0">
+    </div>
+  </div>
+
+  <div class="panel readout" id="readoutPanel">
+    <div class="diff-label">DIFERENCIA ENTRE DIAGONALES</div>
+    <div class="diff-value" id="diffValue">—</div>
+    <div id="statusPill"></div>
+    <div class="fix-text muted" id="fixText">Introduce las dos diagonales medidas para comprobar el escuadrado.</div>
+  </div>
+
+  <button class="btn secondary" id="btnBorrar" style="align-self:center;">Borrar todo y empezar de nuevo</button>
+</div>
+
+<div class="lightbox" id="lightbox" hidden>
+  <button class="lightbox-close" id="lightboxClose" aria-label="Cerrar">×</button>
+  <img id="lightboxImg" alt="Plano ampliado">
+  <div class="lightbox-hint">Toca la imagen para ampliar o reducir · toca fuera para cerrar</div>
+</div>
+
+<!-- pdf.js servido desde el propio repositorio (sin CDN) para que funcione sin conexión -->
+<script src="vendor/pdfjs/pdf.min.js"></script>
+<script>
+(function(){
+  const $ = id => document.getElementById(id);
+  const ancho = $('ancho'), alto = $('alto');
+  const diag1 = $('diag1'), diag2 = $('diag2'), tolerancia = $('tolerancia');
+  const diagTeorica = $('diagTeorica');
+  const diffValue = $('diffValue'), statusPill = $('statusPill'), fixText = $('fixText');
+  const tabManual = $('tabManual'), tabFoto = $('tabFoto');
+  const panelManual = $('panelManual'), panelFoto = $('panelFoto');
+  const photoZone = $('photoZone'), photoInput = $('photoInput'), photoZoneText = $('photoZoneText');
+  const photoStatus = $('photoStatus'), btnContinuar = $('btnContinuar');
+  const lightbox = $('lightbox'), lightboxImg = $('lightboxImg'), lightboxClose = $('lightboxClose');
+  const btnBorrar = $('btnBorrar');
+  const PHOTO_ZONE_DEFAULT = 'Arrastra el plano (imagen o PDF) aquí, o toca para subirlo o hacer una foto';
+
+  const fmt = n => new Intl.NumberFormat('es-ES', {maximumFractionDigits:1}).format(n);
+
+  // ---- Pestañas ----
+  function selectTab(which){
+    const manual = which === 'manual';
+    tabManual.classList.toggle('active', manual);
+    tabFoto.classList.toggle('active', !manual);
+    tabManual.setAttribute('aria-selected', manual);
+    tabFoto.setAttribute('aria-selected', !manual);
+    panelManual.style.display = manual ? '' : 'none';
+    panelFoto.style.display = manual ? 'none' : '';
+  }
+  tabManual.addEventListener('click', () => selectTab('manual'));
+  tabFoto.addEventListener('click', () => selectTab('foto'));
+  btnContinuar.addEventListener('click', () => selectTab('manual'));
+
+  // ---- Ampliar el plano ----
+  function abrirLightbox(src){
+    lightboxImg.src = src;
+    lightboxImg.classList.remove('zoomed');
+    lightbox.hidden = false;
+  }
+  lightboxImg.addEventListener('click', () => lightboxImg.classList.toggle('zoomed'));
+  lightboxClose.addEventListener('click', () => { lightbox.hidden = true; });
+  lightbox.addEventListener('click', e => { if(e.target === lightbox) lightbox.hidden = true; });
+
+  // ---- Plano: el PDF se convierte en imagen en el propio navegador (pdf.js), sin servidor ----
+  if(window.pdfjsLib){
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'vendor/pdfjs/pdf.worker.min.js';
+  }
+
+  async function pdfPrimeraPaginaAImagen(file){
+    const buffer = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: buffer }).promise;
+    const page = await pdf.getPage(1);
+    const base = page.getViewport({ scale: 1 });
+    const scale = Math.min(4, Math.max(1, 1800 / Math.max(base.width, base.height)));
+    const viewport = page.getViewport({ scale });
+    const canvas = document.createElement('canvas');
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    await page.render({ canvasContext: ctx, viewport }).promise;
+    return { dataUrl: canvas.toDataURL('image/png'), numPages: pdf.numPages };
+  }
+
+  // Llaza/Umara nombra sus planos "... ANCHOxLARGO ...pdf" (p.ej. "3020x5450"): es una
+  // lectura fiable al 100% porque no depende de visión artificial, solo del nombre de archivo.
+  // Si el plano tiene varios módulos, esa cifra es el conjunto, no un módulo — por eso se avisa siempre.
+  function extraerCotasDeNombre(nombre){
+    const m = nombre.match(/(\d{3,6})\s*[x×X]\s*(\d{3,6})/);
+    if(!m) return null;
+    return { ancho: Number(m[1]), largo: Number(m[2]) };
+  }
+
+  function mostrarPreview(dataUrl, label){
+    photoZoneText.innerHTML = '';
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'photo-preview';
+    const img = document.createElement('img');
+    img.src = dataUrl;
+    img.alt = 'Vista previa del plano';
+    btn.appendChild(img);
+    const caption = document.createElement('div');
+    caption.className = 'photo-caption';
+    caption.textContent = label + ' · toca para ampliar';
+    photoZoneText.appendChild(btn);
+    photoZoneText.appendChild(caption);
+    btn.addEventListener('click', () => abrirLightbox(dataUrl));
+    btnContinuar.hidden = false;
+  }
+
+  function aplicarCotasAutomaticas(nombreArchivo){
+    const cotas = extraerCotasDeNombre(nombreArchivo);
+    if(!cotas) return false;
+    ancho.value = cotas.ancho;
+    alto.value = cotas.largo;
+    actualizarTeorica();
+    guardar();
+    photoStatus.classList.remove('warn');
+    photoStatus.innerHTML = `Cotas leídas del nombre del archivo: <b>${fmt(cotas.ancho)} × ${fmt(cotas.largo)} mm</b>, ya pasadas a Manual. `
+      + 'Si el plano tiene varios módulos, esta cifra es la del conjunto — verifícala contra el plano y corrígela si no corresponde a tu módulo.';
+    return true;
+  }
+
+  photoInput.addEventListener('change', async () => {
+    const file = photoInput.files && photoInput.files[0];
+    if(!file) return;
+    btnContinuar.hidden = true;
+
+    const esPdf = file.type === 'application/pdf' || /\.pdf$/i.test(file.name);
+    if(esPdf){
+      photoStatus.classList.remove('warn');
+      photoStatus.textContent = 'Convirtiendo la primera página del PDF a imagen…';
+      try{
+        const { dataUrl, numPages } = await pdfPrimeraPaginaAImagen(file);
+        mostrarPreview(dataUrl, numPages > 1 ? `${file.name} (página 1 de ${numPages})` : file.name);
+        if(!aplicarCotasAutomaticas(file.name)){
+          photoStatus.textContent = 'No he podido deducir el ancho y el largo del nombre del archivo. Amplía el plano para leer las cotas y pásalas a la pestaña Manual.';
+        }
+      }catch(e){
+        photoStatus.classList.add('warn');
+        photoStatus.textContent = 'No he podido abrir este PDF (puede estar protegido o dañado). Prueba con una foto o una captura de pantalla del plano.';
+      }
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = e => {
+      mostrarPreview(e.target.result, file.name);
+      if(!aplicarCotasAutomaticas(file.name)){
+        photoStatus.classList.remove('warn');
+        photoStatus.textContent = 'No he podido deducir el ancho y el largo del nombre del archivo. Amplía el plano para leer las cotas y pásalas a la pestaña Manual.';
+      }
+    };
+    reader.readAsDataURL(file);
+  });
+
+  ['dragover','dragenter'].forEach(evt => photoZone.addEventListener(evt, e => { e.preventDefault(); photoZone.classList.add('drag'); }));
+  ['dragleave','drop'].forEach(evt => photoZone.addEventListener(evt, () => photoZone.classList.remove('drag')));
+  photoZone.addEventListener('drop', e => {
+    e.preventDefault();
+    if(e.dataTransfer.files && e.dataTransfer.files[0]){
+      photoInput.files = e.dataTransfer.files;
+      photoInput.dispatchEvent(new Event('change'));
+    }
+  });
+
+  // ---- Diagonal teórica ----
+  function actualizarTeorica(){
+    const w = parseFloat(ancho.value), h = parseFloat(alto.value);
+    if(w > 0 && h > 0){
+      diagTeorica.textContent = fmt(Math.sqrt(w*w + h*h));
+    } else {
+      diagTeorica.textContent = '—';
+    }
+    actualizarDiagrama();
+  }
+
+  // ---- Dibujo ----
+  function baseRect(){
+    const w = parseFloat(ancho.value), h = parseFloat(alto.value);
+    const cx = 150, cy = 110, maxW = 232, maxH = 158;
+    let rw, rh;
+    if(w > 0 && h > 0){
+      const scale = Math.min(maxW / w, maxH / h);
+      rw = w * scale; rh = h * scale;
+    } else {
+      rw = 210; rh = 150;
+    }
+    return { left: cx - rw/2, right: cx + rw/2, top: cy - rh/2, bottom: cy + rh/2 };
+  }
+
+  function clamp(n, lo, hi){ return Math.max(lo, Math.min(hi, n)); }
+
+  function actualizarDiagrama(){
+    const r = baseRect();
+    const d1 = parseFloat(diag1.value), d2 = parseFloat(diag2.value);
+    const tol = parseFloat(tolerancia.value) || 0;
+
+    let s = 0, colorAC = 'var(--accent)', colorBD = 'var(--accent)';
+    if(!isNaN(d1) && !isNaN(d2) && d1 > 0 && d2 > 0){
+      const diff = Math.abs(d1 - d2);
+      const dentro = diff <= tol;
+      const ratio = diff / (tol > 0 ? tol : 1);
+      const shear = clamp(ratio * 6, 0, 45);
+      s = d1 > d2 ? -shear : (d2 > d1 ? shear : 0);
+      if(dentro){
+        colorAC = 'var(--good)'; colorBD = 'var(--good)';
+      } else if(d1 > d2){
+        colorAC = 'var(--warn)'; colorBD = 'var(--accent)';
+      } else {
+        colorAC = 'var(--accent)'; colorBD = 'var(--warn)';
+      }
+    }
+
+    const p1 = { x: r.left + s, y: r.top };
+    const p2 = { x: r.right + s, y: r.top };
+    const p3 = { x: r.right, y: r.bottom };
+    const p4 = { x: r.left, y: r.bottom };
+
+    $('rectShape').setAttribute('points', `${p1.x},${p1.y} ${p2.x},${p2.y} ${p3.x},${p3.y} ${p4.x},${p4.y}`);
+    const lineAC = $('lineAC'), lineBD = $('lineBD');
+    lineAC.setAttribute('x1', p1.x); lineAC.setAttribute('y1', p1.y);
+    lineAC.setAttribute('x2', p3.x); lineAC.setAttribute('y2', p3.y);
+    lineAC.setAttribute('stroke', colorAC);
+    lineBD.setAttribute('x1', p2.x); lineBD.setAttribute('y1', p2.y);
+    lineBD.setAttribute('x2', p4.x); lineBD.setAttribute('y2', p4.y);
+    lineBD.setAttribute('stroke', colorBD);
+
+    $('c1').setAttribute('cx', p1.x); $('c1').setAttribute('cy', p1.y);
+    $('c2').setAttribute('cx', p2.x); $('c2').setAttribute('cy', p2.y);
+    $('c3').setAttribute('cx', p3.x); $('c3').setAttribute('cy', p3.y);
+    $('c4').setAttribute('cx', p4.x); $('c4').setAttribute('cy', p4.y);
+
+    $('t1').setAttribute('x', p1.x - 16); $('t1').setAttribute('y', p1.y - 8);
+    $('t2').setAttribute('x', p2.x + 8);  $('t2').setAttribute('y', p2.y - 8);
+    $('t3').setAttribute('x', p3.x + 8);  $('t3').setAttribute('y', p3.y + 18);
+    $('t4').setAttribute('x', p4.x - 16); $('t4').setAttribute('y', p4.y + 18);
+  }
+
+  // ---- Resultado ----
+  function actualizarLectura(){
+    const d1 = parseFloat(diag1.value), d2 = parseFloat(diag2.value);
+    const tol = parseFloat(tolerancia.value) || 0;
+
+    if(isNaN(d1) || isNaN(d2) || d1 <= 0 || d2 <= 0){
+      diffValue.innerHTML = '—';
+      statusPill.innerHTML = '';
+      fixText.textContent = 'Introduce las dos diagonales medidas para comprobar el escuadrado.';
+      fixText.classList.add('muted');
+      actualizarDiagrama();
+      return;
+    }
+
+    const diff = Math.abs(d1 - d2);
+    const dentro = diff <= tol;
+    diffValue.innerHTML = `${fmt(diff)} <span class="u">mm</span>`;
+    fixText.classList.remove('muted');
+
+    if(dentro){
+      statusPill.innerHTML = '<span class="pill good"><span class="dot"></span>A ESCUADRA</span>';
+      fixText.textContent = diff === 0
+        ? 'Diagonales iguales: la estructura está perfectamente a escuadra.'
+        : `Diferencia de ${fmt(diff)} mm, dentro de la tolerancia de ${fmt(tol)} mm. No requiere corrección.`;
+    } else {
+      statusPill.innerHTML = '<span class="pill warn"><span class="dot"></span>FUERA DE ESCUADRA</span>';
+      const larga = d1 > d2 ? '1→3' : '2→4';
+      const cortas = d1 > d2 ? ['1','3'] : ['2','4'];
+      const otras = d1 > d2 ? ['2','4'] : ['1','3'];
+      const mitad = diff / 2;
+      fixText.textContent = `La diagonal ${larga} es ${fmt(diff)} mm más larga. Empuja las esquinas ${cortas[0]} y ${cortas[1]} hacia dentro (o separa ${otras[0]} y ${otras[1]}) unos ${fmt(mitad)} mm y vuelve a medir, hasta igualar ambas diagonales.`;
+    }
+    actualizarDiagrama();
+  }
+
+  // ---- Guardar en el dispositivo (solo comodidad) ----
+  const FIELDS = ['ancho','alto','diag1','diag2','tolerancia'];
+  function guardar(){
+    try{
+      const data = {};
+      FIELDS.forEach(id => data[id] = $(id).value);
+      localStorage.setItem('escuadrado-pergola', JSON.stringify(data));
+    }catch(e){}
+  }
+  function restaurar(){
+    try{
+      const raw = localStorage.getItem('escuadrado-pergola');
+      if(!raw) return;
+      const data = JSON.parse(raw);
+      FIELDS.forEach(id => { if(data[id]) $(id).value = data[id]; });
+    }catch(e){}
+  }
+
+  [ancho, alto].forEach(el => el.addEventListener('input', () => { actualizarTeorica(); guardar(); }));
+  [diag1, diag2, tolerancia].forEach(el => el.addEventListener('input', () => { actualizarLectura(); guardar(); }));
+
+  // ---- Borrar todo ----
+  btnBorrar.addEventListener('click', () => {
+    [ancho, alto, diag1, diag2].forEach(el => el.value = '');
+    tolerancia.value = 5;
+    try{ localStorage.removeItem('escuadrado-pergola'); }catch(e){}
+    actualizarTeorica();
+    actualizarLectura();
+
+    photoInput.value = '';
+    photoZoneText.textContent = PHOTO_ZONE_DEFAULT;
+    photoStatus.textContent = '';
+    photoStatus.classList.remove('warn');
+    btnContinuar.hidden = true;
+
+    selectTab('manual');
+  });
+
+  restaurar();
+  actualizarTeorica();
+  actualizarLectura();
+})();
+</script>
+<script>if('serviceWorker' in navigator){addEventListener('load',function(){navigator.serviceWorker.register('./sw.js');});}</script>
+</body>
+</html>
