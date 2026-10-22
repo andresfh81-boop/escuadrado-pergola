@@ -1,6 +1,6 @@
 // Red primero: con internet siempre carga lo último y guarda copia; sin conexión sirve la copia.
 // Si se añaden archivos a la app, apuntarlos en APP_SHELL y subir el número de CACHE_NAME.
-const CACHE_NAME = 'escuadrado-v1';
+const CACHE_NAME = 'escuadrado-v2';
 const APP_SHELL = [
   './',
   './index.html',
@@ -29,6 +29,8 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
+  // El interruptor remoto (estado-apps) va siempre directo a internet, sin pasar por la copia.
+  if (event.request.url.startsWith('https://raw.githubusercontent.com/')) return;
   event.respondWith(
     fetch(event.request)
       .then((response) => {

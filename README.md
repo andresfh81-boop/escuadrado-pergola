@@ -16,3 +16,15 @@ App para comprobar en obra si la estructura de una pérgola está a escuadra.
 
 Cada vez que cambies `index.html`, súbelo y sube en 1 el número de `CACHE_NAME` en `sw.js`
 (p. ej. `escuadrado-v2`).
+
+## Interruptor remoto
+
+Al abrirse (y al volver a la app, y cada 10 min) consulta
+`https://raw.githubusercontent.com/andresfh81-boop/estado-apps/main/estado.json`, clave `escuadrado-pergola`:
+
+- `"activa": false` → pantalla «App desactivada» (con el `mensaje`, si lo hay) y no deja usarla.
+  Se acuerda: **sigue bloqueada sin conexión** hasta que lea `"activa": true`.
+- `"activa": true` → funciona (y se quita el bloqueo si lo había).
+- Sin conexión, sin el archivo o sin la clave → no cambia nada (sigue como estaba).
+
+El cambio en GitHub tarda hasta unos 5 minutos en llegar.
